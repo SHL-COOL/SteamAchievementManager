@@ -87,7 +87,7 @@
             this._StoreButton.Image = global::SAM.Game.Resources.Save;
             this._StoreButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this._StoreButton.Name = "_StoreButton";
-            this._StoreButton.Size = new System.Drawing.Size(120, 22);
+            this._StoreButton.Size = new System.Drawing.Size(127, 22);
             this._StoreButton.Text = "Commit Changes";
             this._StoreButton.ToolTipText = "Store achievements and statistics for active game.";
             this._StoreButton.Click += new System.EventHandler(this.OnStore);
@@ -98,7 +98,7 @@
             this._ReloadButton.Image = global::SAM.Game.Resources.Refresh;
             this._ReloadButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this._ReloadButton.Name = "_ReloadButton";
-            this._ReloadButton.Size = new System.Drawing.Size(66, 22);
+            this._ReloadButton.Size = new System.Drawing.Size(72, 22);
             this._ReloadButton.Text = "Refresh";
             this._ReloadButton.ToolTipText = "Refresh achievements and statistics for active game.";
             this._ReloadButton.Click += new System.EventHandler(this.OnRefresh);
@@ -108,7 +108,7 @@
             this._ResetButton.Image = global::SAM.Game.Resources.Reset;
             this._ResetButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this._ResetButton.Name = "_ResetButton";
-            this._ResetButton.Size = new System.Drawing.Size(55, 22);
+            this._ResetButton.Size = new System.Drawing.Size(60, 22);
             this._ResetButton.Text = "Reset";
             this._ResetButton.ToolTipText = "Reset achievements and/or statistics for active game.";
             this._ResetButton.Click += new System.EventHandler(this.OnResetAllStats);
@@ -125,7 +125,7 @@
             this._CountryStatusLabel,
             this._GameStatusLabel,
             this._DownloadStatusLabel});
-            this._MainStatusStrip.Location = new System.Drawing.Point(0, 370);
+            this._MainStatusStrip.Location = new System.Drawing.Point(0, 340);
             this._MainStatusStrip.Name = "_MainStatusStrip";
             this._MainStatusStrip.Size = new System.Drawing.Size(632, 22);
             this._MainStatusStrip.TabIndex = 4;
@@ -147,7 +147,7 @@
             // 
             this._DownloadStatusLabel.Image = global::SAM.Game.Resources.Download;
             this._DownloadStatusLabel.Name = "_DownloadStatusLabel";
-            this._DownloadStatusLabel.Size = new System.Drawing.Size(111, 17);
+            this._DownloadStatusLabel.Size = new System.Drawing.Size(121, 17);
             this._DownloadStatusLabel.Text = "Download status";
             this._DownloadStatusLabel.Visible = false;
             // 
@@ -163,10 +163,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this._MainTabControl.Controls.Add(this._AchievementsTabPage);
             this._MainTabControl.Controls.Add(this._StatisticsTabPage);
-            this._MainTabControl.Location = new System.Drawing.Point(8, 33);
+            this._MainTabControl.Location = new System.Drawing.Point(8, 30);
             this._MainTabControl.Name = "_MainTabControl";
             this._MainTabControl.SelectedIndex = 0;
-            this._MainTabControl.Size = new System.Drawing.Size(616, 334);
+            this._MainTabControl.Size = new System.Drawing.Size(616, 308);
             this._MainTabControl.TabIndex = 5;
             // 
             // _AchievementsTabPage
@@ -176,7 +176,7 @@
             this._AchievementsTabPage.Location = new System.Drawing.Point(4, 22);
             this._AchievementsTabPage.Name = "_AchievementsTabPage";
             this._AchievementsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this._AchievementsTabPage.Size = new System.Drawing.Size(608, 308);
+            this._AchievementsTabPage.Size = new System.Drawing.Size(608, 282);
             this._AchievementsTabPage.TabIndex = 0;
             this._AchievementsTabPage.Text = "Achievements";
             this._AchievementsTabPage.UseVisualStyleBackColor = true;
@@ -198,7 +198,7 @@
             this._AchievementListView.LargeImageList = this._AchievementImageList;
             this._AchievementListView.Location = new System.Drawing.Point(3, 28);
             this._AchievementListView.Name = "_AchievementListView";
-            this._AchievementListView.Size = new System.Drawing.Size(602, 277);
+            this._AchievementListView.Size = new System.Drawing.Size(602, 251);
             this._AchievementListView.SmallImageList = this._AchievementImageList;
             this._AchievementListView.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this._AchievementListView.TabIndex = 4;
@@ -267,7 +267,7 @@
             this._StatisticsTabPage.Location = new System.Drawing.Point(4, 22);
             this._StatisticsTabPage.Name = "_StatisticsTabPage";
             this._StatisticsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this._StatisticsTabPage.Size = new System.Drawing.Size(608, 308);
+            this._StatisticsTabPage.Size = new System.Drawing.Size(608, 282);
             this._StatisticsTabPage.TabIndex = 1;
             this._StatisticsTabPage.Text = "Statistics";
             this._StatisticsTabPage.UseVisualStyleBackColor = true;
@@ -277,9 +277,9 @@
             this._EnableStatsEditingCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this._EnableStatsEditingCheckBox.AutoSize = true;
-            this._EnableStatsEditingCheckBox.Location = new System.Drawing.Point(6, 285);
+            this._EnableStatsEditingCheckBox.Location = new System.Drawing.Point(6, 263);
             this._EnableStatsEditingCheckBox.Name = "_EnableStatsEditingCheckBox";
-            this._EnableStatsEditingCheckBox.Size = new System.Drawing.Size(512, 17);
+            this._EnableStatsEditingCheckBox.Size = new System.Drawing.Size(642, 16);
             this._EnableStatsEditingCheckBox.TabIndex = 1;
             this._EnableStatsEditingCheckBox.Text = "I understand by modifying the values of stats, I may screw things up and can\'t bl" +
     "ame anyone but myself.";
@@ -296,21 +296,21 @@
             this._StatisticsDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this._StatisticsDataGridView.Location = new System.Drawing.Point(6, 6);
             this._StatisticsDataGridView.Name = "_StatisticsDataGridView";
-            this._StatisticsDataGridView.Size = new System.Drawing.Size(596, 273);
+            this._StatisticsDataGridView.Size = new System.Drawing.Size(596, 252);
             this._StatisticsDataGridView.TabIndex = 0;
             this._StatisticsDataGridView.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.OnStatCellEndEdit);
             this._StatisticsDataGridView.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.OnStatDataError);
             // 
             // Manager
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(632, 392);
+            this.ClientSize = new System.Drawing.Size(632, 362);
             this.Controls.Add(this._MainToolStrip);
             this.Controls.Add(this._MainTabControl);
             this.Controls.Add(this._MainStatusStrip);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(640, 50);
+            this.MinimumSize = new System.Drawing.Size(640, 49);
             this.Name = "Manager";
             this.Text = "Steam Achievement Manager 7.0";
             this._MainToolStrip.ResumeLayout(false);

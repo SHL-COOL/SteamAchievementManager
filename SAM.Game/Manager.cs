@@ -28,6 +28,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Windows.Forms;
 using APITypes = SAM.API.Types;
 
@@ -93,11 +94,13 @@ namespace SAM.Game
             string name = this._SteamClient.SteamApps001.GetAppData((uint)this._GameId, "name");
             if (name != null)
             {
+                gameName = name;
                 base.Text += " | " + name;
             }
             else
             {
-                base.Text += " | " + this._GameId.ToString(CultureInfo.InvariantCulture);
+                gameName = this._GameId.ToString(CultureInfo.InvariantCulture);
+                base.Text += " | " + gameName;
             }
 
             this._UserStatsReceivedCallback = client.CreateAndRegisterCallback<API.Callbacks.UserStatsReceived>();
@@ -105,8 +108,14 @@ namespace SAM.Game
 
             //this.UserStatsStoredCallback = new API.Callback(1102, new API.Callback.CallbackFunction(this.OnUserStatsStored));
             this.RefreshStats();
+
+            backgroundWorker.WorkerSupportsCancellation = true;
+            backgroundWorker.DoWork += backgroundWorker_DoWork;
+            backgroundWorker.RunWorkerCompleted += backgroundWorker_RunWorkerCompleted;
         }
 
+        string gameName;
+        private BackgroundWorker backgroundWorker = new BackgroundWorker();
         private void AddAchievementIcon(Stats.AchievementInfo info, Image icon)
         {
             if (icon == null)
@@ -729,40 +738,96 @@ namespace SAM.Game
 
             return true;
         }
-
+        Random random = new Random();
         private void OnStore(object sender, EventArgs e)
         {
-            int achievements = this.StoreAchievements();
-            if (achievements < 0)
-            {
-                this.RefreshStats();
-                return;
-            }
+            // 启用TLS 1.2支持
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; // TLS 1.2
 
-            int stats = this.StoreStatistics();
-            if (stats < 0)
+            int count = 0;
+            foreach (ListViewItem item in this._AchievementListView.Items)
             {
-                this.RefreshStats();
-                return;
+                if (!item.Checked)
+                {
+                    count++;
+                }
             }
-
-            if (this.Store() == false)
-            {
-                this.RefreshStats();
-                return;
-            }
-
             MessageBox.Show(
                 this,
-                string.Format(
-                    CultureInfo.CurrentCulture,
-                    "Stored {0} achievements and {1} statistics.",
-                    achievements,
-                    stats),
+                "总共有" + count,
                 "Information",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
+
+            // 启动BackgroundWorker执行任务
+            backgroundWorker.RunWorkerAsync(count);
+        }
+
+        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            int count = (int)e.Argument;
+
+            for (int i = 0; i < count; i++)
+            {
+                foreach (ListViewItem item in this._AchievementListView.Items)
+                {
+                    if (!item.Checked)
+                    {
+                        item.Checked = true;
+                        string url = "";
+                        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                        request.Method = "GET";
+
+                        try
+                        {
+                            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                            {
+                                using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+                                {
+                                    string responseText = reader.ReadToEnd();
+                                    // 处理响应数据
+                                    Console.WriteLine("响应内容：");
+                                    Console.WriteLine(responseText);
+                                }
+                            }
+                        }
+                        catch (WebException webEx)
+                        {
+                            Console.WriteLine("请求异常：" + webEx.Message);
+                        }
+                        break;
+                    }
+                }
+                System.Threading.Thread.Sleep(100);
+                int achievements = this.StoreAchievements();
+                if (achievements < 0)
+                {
+                    this.RefreshStats();
+                    return;
+                }
+
+                int stats = this.StoreStatistics();
+                if (stats < 0)
+                {
+                    this.RefreshStats();
+                    return;
+                }
+
+                if (this.Store() == false)
+                {
+                    this.RefreshStats();
+                    return;
+                }
+                int randomWaitTimeMs = random.Next(1, 31) * 60000;
+                System.Threading.Thread.Sleep(randomWaitTimeMs);
+               
+            }
             this.RefreshStats();
+        }
+
+        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            // 后台任务完成后的处理
         }
 
         private void OnStatDataError(object sender, DataGridViewDataErrorEventArgs e)
@@ -861,5 +926,6 @@ namespace SAM.Game
                 e.NewValue = e.CurrentValue;
             }
         }
+
     }
 }
