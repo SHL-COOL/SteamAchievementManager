@@ -819,9 +819,11 @@ namespace SAM.Game
                     return;
                 }
                 int randomWaitTimeMs = random.Next(1, 31) * 60000;
+                this.label1.Text = "进度（" + (i + 1) + "/" + count + "） 下一个解锁时间"+ (randomWaitTimeMs / 60000) + "分钟";
                 System.Threading.Thread.Sleep(randomWaitTimeMs);
                
             }
+            Application.Exit();
             this.RefreshStats();
         }
 

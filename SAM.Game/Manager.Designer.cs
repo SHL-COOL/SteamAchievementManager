@@ -53,6 +53,7 @@
             this._StatisticsTabPage = new System.Windows.Forms.TabPage();
             this._EnableStatsEditingCheckBox = new System.Windows.Forms.CheckBox();
             this._StatisticsDataGridView = new System.Windows.Forms.DataGridView();
+            this.label1 = new System.Windows.Forms.Label();
             _ToolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this._MainToolStrip.SuspendLayout();
             this._MainStatusStrip.SuspendLayout();
@@ -301,11 +302,20 @@
             this._StatisticsDataGridView.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.OnStatCellEndEdit);
             this._StatisticsDataGridView.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.OnStatDataError);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(285, 9);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(0, 12);
+            this.label1.TabIndex = 6;
+            // 
             // Manager
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(632, 362);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this._MainToolStrip);
             this.Controls.Add(this._MainTabControl);
             this.Controls.Add(this._MainStatusStrip);
@@ -354,6 +364,7 @@
         public System.Windows.Forms.CheckBox _EnableStatsEditingCheckBox;
         private System.Windows.Forms.ToolStripButton _ResetButton;
         private System.Windows.Forms.ToolStripStatusLabel _DownloadStatusLabel;
-	}
+        private System.Windows.Forms.Label label1;
+    }
 }
 
