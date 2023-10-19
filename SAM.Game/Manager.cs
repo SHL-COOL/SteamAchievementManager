@@ -20,6 +20,7 @@
  *    distribution.
  */
 
+using SAM.API;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -28,6 +29,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using APITypes = SAM.API.Types;
@@ -172,7 +175,7 @@ namespace SAM.Game
 
             this._DownloadStatusLabel.Text = string.Format(
                 CultureInfo.CurrentCulture,
-                "Downloading {0} icons...",
+                "下载 {0} 图标...",
                 this._IconQueue.Count);
             this._DownloadStatusLabel.Visible = true;
 
@@ -382,7 +385,7 @@ namespace SAM.Game
             {
                 this._GameStatusLabel.Text = string.Format(
                     CultureInfo.CurrentCulture,
-                    "Error while retrieving stats: {0}",
+                    "检索统计信息时出错：{0}",
                     TranslateError(param.Result));
                 this.EnableInput();
                 return;
@@ -390,7 +393,7 @@ namespace SAM.Game
 
             if (this.LoadUserGameStatsSchema() == false)
             {
-                this._GameStatusLabel.Text = "Failed to load schema.";
+                this._GameStatusLabel.Text = "未能加载架构。";
                 this.EnableInput();
                 return;
             }
@@ -402,7 +405,7 @@ namespace SAM.Game
             }
             catch (Exception e)
             {
-                this._GameStatusLabel.Text = "Error when handling stats retrieval.";
+                this._GameStatusLabel.Text = "处理统计信息检索时出错。";
                 this.EnableInput();
                 MessageBox.Show(
                     "Error when handling stats retrieval:\n" + e,
@@ -414,7 +417,7 @@ namespace SAM.Game
 
             this._GameStatusLabel.Text = string.Format(
                 CultureInfo.CurrentCulture,
-                "Retrieved {0} achievements and {1} statistics.",
+                "已检索到{0}项成就和{1}项统计信息。",
                 this._AchievementListView.Items.Count,
                 this._StatisticsDataGridView.Rows.Count);
             this.EnableInput();
@@ -431,7 +434,7 @@ namespace SAM.Game
                 return;
             }
 
-            this._GameStatusLabel.Text = "Retrieving stat information...";
+            this._GameStatusLabel.Text = "正在检索统计信息。。。";
             this.DisableInput();
         }
 
@@ -454,6 +457,11 @@ namespace SAM.Game
 
                 bool isAchieved;
                 if (this._SteamClient.SteamUserStats.GetAchievementState(def.Id, out isAchieved) == false)
+                {
+                    continue;
+                }
+
+                if (!this.IsMatchingSearchAndDisplaySettings(isAchieved, def.Name, def.Description))
                 {
                     continue;
                 }
@@ -741,9 +749,8 @@ namespace SAM.Game
         Random random = new Random();
         private void OnStore(object sender, EventArgs e)
         {
-            // 启用TLS 1.2支持
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; // TLS 1.2
-
+           
             int count = 0;
             foreach (ListViewItem item in this._AchievementListView.Items)
             {
@@ -774,26 +781,58 @@ namespace SAM.Game
                     if (!item.Checked)
                     {
                         item.Checked = true;
-                        string url = "";
+                        string url = "https://wxpusher.zjiecode.com/api/send/message";
+                        PushData pushData = new PushData
+                        {
+                            appToken = "AT_oeZm9doV8PG9zODpWDxvFtEQvRalfqQP",  //输入token
+                            uids = new List<string> { "UID_UIIW09qBWJFZSuKiMkoh34LRBnhU" }, //用户ID
+                            topicIds = new List<object>(),
+                            summary = "解锁（" + (i + 1) + "/" + count + "）",
+                            content = "<p><span style=\"color:#000000\"><span style=\"background-color:#ffffff\"><strong><span style=\"font-size:30px\">🎮" + gameName + "</span></strong><span style=\"font-size:16px\">的成就</span><strong><span style=\"font-size:30px\">" + item.Text + "</span></strong><span style=\"font-size:16px\"> 解锁成功<u><em>（" + (i + 1) + " / " + count + "）</em></u></span></span></span></p>",
+                            contentType = 2,
+                            verifyPay = false
+                        };
+                        DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(PushData));
                         HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                        request.Method = "GET";
+                        request.Method = "POST";
+                        request.ContentType = "application/json";
 
                         try
                         {
+                            string jsonData = "";
+                            using (MemoryStream memoryStream = new MemoryStream())
+                            {
+                                serializer.WriteObject(memoryStream, pushData);
+                                jsonData = Encoding.UTF8.GetString(memoryStream.ToArray());
+                                Console.WriteLine(jsonData);
+                            }
+
+                            using (StreamWriter streamWriter = new StreamWriter(request.GetRequestStream()))
+                            {
+                                streamWriter.Write(jsonData);
+                                streamWriter.Flush();
+                                streamWriter.Close();
+                            }
+
                             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                             {
-                                using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+                                if (response.StatusCode == HttpStatusCode.OK)
                                 {
-                                    string responseText = reader.ReadToEnd();
-                                    // 处理响应数据
-                                    Console.WriteLine("响应内容：");
-                                    Console.WriteLine(responseText);
+                                    using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+                                    {
+                                        string responseText = reader.ReadToEnd();
+                                        this._GameStatusLabel.Text = "响应内容：" + responseText;
+                                    }
+                                }
+                                else
+                                {
+                                    this._GameStatusLabel.Text = "HTTP请求失败，状态码：" + response.StatusCode;
                                 }
                             }
                         }
                         catch (WebException webEx)
                         {
-                            Console.WriteLine("请求异常：" + webEx.Message);
+                            this._GameStatusLabel.Text = "请求异常：" + webEx.Message;
                         }
                         break;
                     }
@@ -818,12 +857,24 @@ namespace SAM.Game
                     this.RefreshStats();
                     return;
                 }
+
+                if (i == count)
+                {
+                    break;
+                }
                 int randomWaitTimeMs = random.Next(1, 31) * 60000;
-                this.label1.Text = "进度（" + (i + 1) + "/" + count + "） 下一个解锁时间"+ (randomWaitTimeMs / 60000) + "分钟";
-                System.Threading.Thread.Sleep(randomWaitTimeMs);
-               
+                DateTime startTime = DateTime.Now;
+                while ((DateTime.Now - startTime).TotalMilliseconds < randomWaitTimeMs)
+                {
+                    TimeSpan remainingTime = TimeSpan.FromMilliseconds(randomWaitTimeMs - (DateTime.Now - startTime).TotalMilliseconds);
+                    this._GameStatusLabel.Text = "进度（" + (i + 1) + "/" + count + "） 下一个解锁时间 " + (int)remainingTime.TotalMinutes + " 分钟 " + remainingTime.Seconds + " 秒";
+                    Application.DoEvents();
+                    System.Threading.Thread.Sleep(1000); 
+                }
+
+
             }
-            Application.Exit();
+            this.Close();
             this.RefreshStats();
         }
 
@@ -929,5 +980,90 @@ namespace SAM.Game
             }
         }
 
+        private bool IsMatchingSearchAndDisplaySettings(bool isLocked, string achievementName, string achievementDesc)
+        {
+            // display locked, unlocked or both
+            bool lockStateMatch = (!_DisplayLockedOnlyButton.Checked && !_DisplayUnlockedOnlyButton.Checked) ||
+                                (_DisplayLockedOnlyButton.Checked && isLocked) ||
+                                (_DisplayUnlockedOnlyButton.Checked && !isLocked);
+            // text filter on name / description
+            bool findTxtMatch = true;
+            if (lockStateMatch)
+            {
+                string searchString = _MatchingStringTextBox.Text.ToLowerInvariant();
+                findTxtMatch = String.IsNullOrEmpty(searchString) || achievementName.ToLowerInvariant().Contains(searchString) || achievementDesc.ToLowerInvariant().Contains(searchString);
+            }
+            return lockStateMatch && findTxtMatch;
+        }
+
+        private void _DisplayUncheckedOnlyButton_Click(object sender, EventArgs e)
+        {
+            if ((sender as ToolStripButton).Checked)
+            {
+                _DisplayLockedOnlyButton.Checked = false;
+                _DisplayUnlockedOnlyButton.ForeColor = Color.Blue;
+                _DisplayLockedOnlyButton.ForeColor = Color.Black;
+            }
+            else
+            {
+                _DisplayUnlockedOnlyButton.ForeColor = Color.Black;
+            }
+            this.GetAchievements();
+        }
+
+        private void _DisplayCheckedOnlyButton_Click(object sender, EventArgs e)
+        {
+            if ((sender as ToolStripButton).Checked)
+            {
+                _DisplayUnlockedOnlyButton.Checked = false;
+                _DisplayLockedOnlyButton.ForeColor = Color.Blue;
+                _DisplayUnlockedOnlyButton.ForeColor = Color.Black;
+            }
+            else
+            {
+                _DisplayLockedOnlyButton.ForeColor = Color.Black;
+            }
+            this.GetAchievements();
+        }
+
+        private void OnFilterUpdate(object sender, KeyEventArgs e)
+        {
+            this.GetAchievements();
+        }
+
+        private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+            int achievements = this.StoreAchievements();
+            if (achievements < 0)
+            {
+                this.RefreshStats();
+                return;
+            }
+
+            int stats = this.StoreStatistics();
+            if (stats < 0)
+            {
+                this.RefreshStats();
+                return;
+            }
+
+            if (this.Store() == false)
+            {
+                this.RefreshStats();
+                return;
+            }
+
+            MessageBox.Show(
+                this,
+                string.Format(
+                    CultureInfo.CurrentCulture,
+                    "解锁了 {0} 个成就和 {1} 个统计数据。",
+                    achievements,
+                    stats),
+                "Information",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            this.RefreshStats();
+        }
     }
 }

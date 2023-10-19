@@ -43,17 +43,23 @@
             this._CallbackTimer = new System.Windows.Forms.Timer(this.components);
             this._MainTabControl = new System.Windows.Forms.TabControl();
             this._AchievementsTabPage = new System.Windows.Forms.TabPage();
-            this._AchievementListView = new SAM.Game.DoubleBufferedListView();
-            this._AchievementNameColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this._AchievementDescriptionColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this._AchievementsToolStrip = new System.Windows.Forms.ToolStrip();
             this._LockAllButton = new System.Windows.Forms.ToolStripButton();
             this._InvertAllButton = new System.Windows.Forms.ToolStripButton();
             this._UnlockAllButton = new System.Windows.Forms.ToolStripButton();
+            this._DisplayLabel = new System.Windows.Forms.ToolStripLabel();
+            this._DisplayLockedOnlyButton = new System.Windows.Forms.ToolStripButton();
+            this._DisplayUnlockedOnlyButton = new System.Windows.Forms.ToolStripButton();
+            this._ToolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this._MatchingStringLabel = new System.Windows.Forms.ToolStripLabel();
+            this._MatchingStringTextBox = new System.Windows.Forms.ToolStripTextBox();
             this._StatisticsTabPage = new System.Windows.Forms.TabPage();
             this._EnableStatsEditingCheckBox = new System.Windows.Forms.CheckBox();
             this._StatisticsDataGridView = new System.Windows.Forms.DataGridView();
-            this.label1 = new System.Windows.Forms.Label();
+            this._AchievementListView = new SAM.Game.DoubleBufferedListView();
+            this._AchievementNameColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this._AchievementDescriptionColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             _ToolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this._MainToolStrip.SuspendLayout();
             this._MainStatusStrip.SuspendLayout();
@@ -64,17 +70,12 @@
             ((System.ComponentModel.ISupportInitialize)(this._StatisticsDataGridView)).BeginInit();
             this.SuspendLayout();
             // 
-            // _ToolStripSeparator1
-            // 
-            _ToolStripSeparator1.Name = "_ToolStripSeparator1";
-            _ToolStripSeparator1.Size = new System.Drawing.Size(6, 25);
-            // 
             // _MainToolStrip
             // 
             this._MainToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripButton1,
             this._StoreButton,
             this._ReloadButton,
-            _ToolStripSeparator1,
             this._ResetButton});
             this._MainToolStrip.Location = new System.Drawing.Point(0, 0);
             this._MainToolStrip.Name = "_MainToolStrip";
@@ -88,8 +89,8 @@
             this._StoreButton.Image = global::SAM.Game.Resources.Save;
             this._StoreButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this._StoreButton.Name = "_StoreButton";
-            this._StoreButton.Size = new System.Drawing.Size(127, 22);
-            this._StoreButton.Text = "Commit Changes";
+            this._StoreButton.Size = new System.Drawing.Size(112, 22);
+            this._StoreButton.Text = "自动按顺序解锁";
             this._StoreButton.ToolTipText = "Store achievements and statistics for active game.";
             this._StoreButton.Click += new System.EventHandler(this.OnStore);
             // 
@@ -103,6 +104,11 @@
             this._ReloadButton.Text = "Refresh";
             this._ReloadButton.ToolTipText = "Refresh achievements and statistics for active game.";
             this._ReloadButton.Click += new System.EventHandler(this.OnRefresh);
+            // 
+            // _ToolStripSeparator1
+            // 
+            _ToolStripSeparator1.Name = "_ToolStripSeparator1";
+            _ToolStripSeparator1.Size = new System.Drawing.Size(6, 25);
             // 
             // _ResetButton
             // 
@@ -182,47 +188,19 @@
             this._AchievementsTabPage.Text = "Achievements";
             this._AchievementsTabPage.UseVisualStyleBackColor = true;
             // 
-            // _AchievementListView
-            // 
-            this._AchievementListView.Activation = System.Windows.Forms.ItemActivation.OneClick;
-            this._AchievementListView.BackColor = System.Drawing.Color.Black;
-            this._AchievementListView.BackgroundImageTiled = true;
-            this._AchievementListView.CheckBoxes = true;
-            this._AchievementListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this._AchievementNameColumnHeader,
-            this._AchievementDescriptionColumnHeader});
-            this._AchievementListView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._AchievementListView.ForeColor = System.Drawing.Color.White;
-            this._AchievementListView.FullRowSelect = true;
-            this._AchievementListView.GridLines = true;
-            this._AchievementListView.HideSelection = false;
-            this._AchievementListView.LargeImageList = this._AchievementImageList;
-            this._AchievementListView.Location = new System.Drawing.Point(3, 28);
-            this._AchievementListView.Name = "_AchievementListView";
-            this._AchievementListView.Size = new System.Drawing.Size(602, 251);
-            this._AchievementListView.SmallImageList = this._AchievementImageList;
-            this._AchievementListView.Sorting = System.Windows.Forms.SortOrder.Ascending;
-            this._AchievementListView.TabIndex = 4;
-            this._AchievementListView.UseCompatibleStateImageBehavior = false;
-            this._AchievementListView.View = System.Windows.Forms.View.Details;
-            this._AchievementListView.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.OnCheckAchievement);
-            // 
-            // _AchievementNameColumnHeader
-            // 
-            this._AchievementNameColumnHeader.Text = "Name";
-            this._AchievementNameColumnHeader.Width = 200;
-            // 
-            // _AchievementDescriptionColumnHeader
-            // 
-            this._AchievementDescriptionColumnHeader.Text = "Description";
-            this._AchievementDescriptionColumnHeader.Width = 380;
-            // 
             // _AchievementsToolStrip
             // 
             this._AchievementsToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this._LockAllButton,
             this._InvertAllButton,
-            this._UnlockAllButton});
+            this._UnlockAllButton,
+            _ToolStripSeparator1,
+            this._DisplayLabel,
+            this._DisplayLockedOnlyButton,
+            this._DisplayUnlockedOnlyButton,
+            this._ToolStripSeparator2,
+            this._MatchingStringLabel,
+            this._MatchingStringTextBox});
             this._AchievementsToolStrip.Location = new System.Drawing.Point(3, 3);
             this._AchievementsToolStrip.Name = "_AchievementsToolStrip";
             this._AchievementsToolStrip.Size = new System.Drawing.Size(602, 25);
@@ -260,6 +238,53 @@
             this._UnlockAllButton.Text = "Unlock All";
             this._UnlockAllButton.ToolTipText = "Unlock all achievements.";
             this._UnlockAllButton.Click += new System.EventHandler(this.OnUnlockAll);
+            // 
+            // _DisplayLabel
+            // 
+            this._DisplayLabel.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this._DisplayLabel.Name = "_DisplayLabel";
+            this._DisplayLabel.Size = new System.Drawing.Size(62, 22);
+            this._DisplayLabel.Text = "Show only";
+            // 
+            // _DisplayLockedOnlyButton
+            // 
+            this._DisplayLockedOnlyButton.CheckOnClick = true;
+            this._DisplayLockedOnlyButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this._DisplayLockedOnlyButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this._DisplayLockedOnlyButton.Name = "_DisplayLockedOnlyButton";
+            this._DisplayLockedOnlyButton.Size = new System.Drawing.Size(51, 22);
+            this._DisplayLockedOnlyButton.Text = "locked";
+            this._DisplayLockedOnlyButton.Click += new System.EventHandler(this._DisplayCheckedOnlyButton_Click);
+            // 
+            // _DisplayUnlockedOnlyButton
+            // 
+            this._DisplayUnlockedOnlyButton.CheckOnClick = true;
+            this._DisplayUnlockedOnlyButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this._DisplayUnlockedOnlyButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this._DisplayUnlockedOnlyButton.Name = "_DisplayUnlockedOnlyButton";
+            this._DisplayUnlockedOnlyButton.Size = new System.Drawing.Size(65, 22);
+            this._DisplayUnlockedOnlyButton.Text = "unlocked";
+            this._DisplayUnlockedOnlyButton.Click += new System.EventHandler(this._DisplayUncheckedOnlyButton_Click);
+            // 
+            // _ToolStripSeparator2
+            // 
+            this._ToolStripSeparator2.Name = "_ToolStripSeparator2";
+            this._ToolStripSeparator2.Size = new System.Drawing.Size(6, 25);
+            // 
+            // _MatchingStringLabel
+            // 
+            this._MatchingStringLabel.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this._MatchingStringLabel.Name = "_MatchingStringLabel";
+            this._MatchingStringLabel.Size = new System.Drawing.Size(33, 22);
+            this._MatchingStringLabel.Text = "Filter";
+            // 
+            // _MatchingStringTextBox
+            // 
+            this._MatchingStringTextBox.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F);
+            this._MatchingStringTextBox.Name = "_MatchingStringTextBox";
+            this._MatchingStringTextBox.Size = new System.Drawing.Size(100, 25);
+            this._MatchingStringTextBox.ToolTipText = "Type at least 3 characters that must appear in the name or description";
+            this._MatchingStringTextBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.OnFilterUpdate);
             // 
             // _StatisticsTabPage
             // 
@@ -302,20 +327,58 @@
             this._StatisticsDataGridView.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.OnStatCellEndEdit);
             this._StatisticsDataGridView.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.OnStatDataError);
             // 
-            // label1
+            // _AchievementListView
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(285, 9);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(0, 12);
-            this.label1.TabIndex = 6;
+            this._AchievementListView.Activation = System.Windows.Forms.ItemActivation.OneClick;
+            this._AchievementListView.BackColor = System.Drawing.Color.Black;
+            this._AchievementListView.BackgroundImageTiled = true;
+            this._AchievementListView.CheckBoxes = true;
+            this._AchievementListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this._AchievementNameColumnHeader,
+            this._AchievementDescriptionColumnHeader});
+            this._AchievementListView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._AchievementListView.ForeColor = System.Drawing.Color.White;
+            this._AchievementListView.FullRowSelect = true;
+            this._AchievementListView.GridLines = true;
+            this._AchievementListView.HideSelection = false;
+            this._AchievementListView.LargeImageList = this._AchievementImageList;
+            this._AchievementListView.Location = new System.Drawing.Point(3, 28);
+            this._AchievementListView.Name = "_AchievementListView";
+            this._AchievementListView.Size = new System.Drawing.Size(602, 251);
+            this._AchievementListView.SmallImageList = this._AchievementImageList;
+            this._AchievementListView.Sorting = System.Windows.Forms.SortOrder.Ascending;
+            this._AchievementListView.TabIndex = 4;
+            this._AchievementListView.UseCompatibleStateImageBehavior = false;
+            this._AchievementListView.View = System.Windows.Forms.View.Details;
+            this._AchievementListView.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.OnCheckAchievement);
+            // 
+            // _AchievementNameColumnHeader
+            // 
+            this._AchievementNameColumnHeader.Text = "Name";
+            this._AchievementNameColumnHeader.Width = 200;
+            // 
+            // _AchievementDescriptionColumnHeader
+            // 
+            this._AchievementDescriptionColumnHeader.Text = "Description";
+            this._AchievementDescriptionColumnHeader.Width = 380;
+            // 
+            // toolStripButton1
+            // 
+            this.toolStripButton1.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripButton1.Enabled = false;
+            this.toolStripButton1.Image = global::SAM.Game.Resources.Save;
+            this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton1.Name = "toolStripButton1";
+            this.toolStripButton1.Size = new System.Drawing.Size(112, 22);
+            this.toolStripButton1.Text = "解锁选择的游戏";
+            this.toolStripButton1.ToolTipText = "Store achievements and statistics for active game.";
+            this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
             // 
             // Manager
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(632, 362);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this._MainToolStrip);
             this.Controls.Add(this._MainTabControl);
             this.Controls.Add(this._MainStatusStrip);
@@ -364,7 +427,13 @@
         public System.Windows.Forms.CheckBox _EnableStatsEditingCheckBox;
         private System.Windows.Forms.ToolStripButton _ResetButton;
         private System.Windows.Forms.ToolStripStatusLabel _DownloadStatusLabel;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ToolStripLabel _DisplayLabel;
+        private System.Windows.Forms.ToolStripButton _DisplayUnlockedOnlyButton;
+        private System.Windows.Forms.ToolStripButton _DisplayLockedOnlyButton;
+        private System.Windows.Forms.ToolStripLabel _MatchingStringLabel;
+        private System.Windows.Forms.ToolStripTextBox _MatchingStringTextBox;
+        private System.Windows.Forms.ToolStripSeparator _ToolStripSeparator2;
+        private System.Windows.Forms.ToolStripButton toolStripButton1;
     }
 }
 

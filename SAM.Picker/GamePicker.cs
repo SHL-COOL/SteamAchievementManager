@@ -93,10 +93,13 @@ namespace SAM.Picker
         {
             var pairs = new List<KeyValuePair<uint, string>>();
             byte[] bytes;
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; // TLS 1.2
+            this._PickerStatusLabel.Text = "获取游戏数据";
             using (var downloader = new WebClient())
             {
-                bytes = downloader.DownloadData(new Uri("http://gib.me/sam/games.xml"));
+                bytes = downloader.DownloadData(new Uri("https://gib.me/sam/games.xml"));
             }
+            this._PickerStatusLabel.Text = "数据获取完毕";
             using (var stream = new MemoryStream(bytes, false))
             {
                 var document = new XPathDocument(stream);
@@ -138,6 +141,11 @@ namespace SAM.Picker
             this._FilteredGames.Clear();
             foreach (var info in this._Games.Values.OrderBy(gi => gi.Name))
             {
+                if (_SearchGameTextBox.Text.Length != 0 &&
+                   !info.Name.ToLowerInvariant().Contains(_SearchGameTextBox.Text.ToLowerInvariant()))
+                {
+                    continue;
+                }
                 if (info.Type == "normal" && _FilterGamesMenuItem.Checked == false)
                 {
                     continue;
@@ -161,7 +169,7 @@ namespace SAM.Picker
             this._GameListView.VirtualListSize = this._FilteredGames.Count;
             this._PickerStatusLabel.Text = string.Format(
                 CultureInfo.CurrentCulture,
-                "Displaying {0} games. Total {1} games.",
+                "显示{0}个游戏。总共{1}个游戏。",
                 this._GameListView.Items.Count,
                 this._Games.Count);
 
@@ -293,7 +301,7 @@ namespace SAM.Picker
 
             this._DownloadStatusLabel.Text = string.Format(
                 CultureInfo.CurrentCulture,
-                "Downloading {0} game icons...",
+                "下载{0}游戏图标...",
                 this._LogoQueue.Count);
             this._DownloadStatusLabel.Visible = true;
 
@@ -444,6 +452,7 @@ namespace SAM.Picker
         private void OnFilterUpdate(object sender, EventArgs e)
         {
             this.RefreshGames();
+            this._SearchGameTextBox.Focus(); 
         }
     }
 }
