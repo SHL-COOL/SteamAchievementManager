@@ -686,12 +686,14 @@ namespace SAM.Game
         private void DisableInput()
         {
             this._ReloadButton.Enabled = false;
+            this._AutoStoreButton.Enabled = false;
             this._StoreButton.Enabled = false;
         }
 
         private void EnableInput()
         {
             this._ReloadButton.Enabled = true;
+            this._AutoStoreButton.Enabled = true;
             this._StoreButton.Enabled = true;
         }
 
@@ -1031,7 +1033,7 @@ namespace SAM.Game
             this.GetAchievements();
         }
 
-        private void toolStripButton1_Click(object sender, EventArgs e)
+        private void _StoreButton_Click(object sender, EventArgs e)
         {
             int achievements = this.StoreAchievements();
             if (achievements < 0)
