@@ -55,11 +55,18 @@ namespace SAM.Game
         // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
         private readonly API.Callbacks.UserStatsReceived _UserStatsReceivedCallback;
         // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
-
+        private string logoDirLocal;
         //private API.Callback<APITypes.UserStatsStored> UserStatsStoredCallback;
 
         public Manager(long gameId, API.Client client)
         {
+            logoDirLocal = string.Format(
+               CultureInfo.InvariantCulture,
+               "{0}/logocache/{1}",
+               Path.GetDirectoryName(Application.ExecutablePath),
+               gameId);
+            System.IO.Directory.CreateDirectory(logoDirLocal);
+
             this.InitializeComponent();
 
             this._MainTabControl.SelectedTab = this._AchievementsTabPage;
@@ -138,23 +145,20 @@ namespace SAM.Game
             {
                 var info = e.UserState as Stats.AchievementInfo;
 
-                Bitmap bitmap;
+                var logoPathLocal = logoDirLocal + "/" + (info.IsAchieved == true ? info.IconNormal : info.IconLocked);
 
                 try
                 {
-                    using (var stream = new MemoryStream())
+                    using (var stream = File.OpenWrite(logoPathLocal))
                     {
                         stream.Write(e.Result, 0, e.Result.Length);
-                        bitmap = new Bitmap(stream);
                     }
+                    LoadAchievementIconLocally(info);
                 }
                 catch (Exception)
                 {
-                    bitmap = null;
                 }
 
-                this.AddAchievementIcon(info, bitmap);
-                this._AchievementListView.Update();
             }
 
             this.DownloadNextIcon();
@@ -186,7 +190,7 @@ namespace SAM.Game
             this._IconDownloader.DownloadDataAsync(
                 new Uri(string.Format(
                     CultureInfo.InvariantCulture,
-                    "http://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{0}/{1}",
+                    "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{0}/{1}",
                     this._GameId,
                     info.IsAchieved == true ? info.IconNormal : info.IconLocked)),
                 info);
@@ -487,14 +491,7 @@ namespace SAM.Game
 
                 info.Item = item;
 
-                if (item.Text.StartsWith("#", StringComparison.InvariantCulture) == true)
-                {
-                    item.Text = info.Id;
-                }
-                else
-                {
-                    item.SubItems.Add(info.Description);
-                }
+                item.SubItems.Add(info.Description);
 
                 info.ImageIndex = 0;
 
@@ -556,7 +553,23 @@ namespace SAM.Game
                 }
             }
         }
+        private bool LoadAchievementIconLocally(Stats.AchievementInfo info)
+        {
+            var logoPathLocal = logoDirLocal + "/" + (info.IsAchieved == true ? info.IconNormal : info.IconLocked);
 
+            if (File.Exists(logoPathLocal))
+            {
+                var stream = File.OpenRead(logoPathLocal);
+                Bitmap bitmap = new Bitmap(stream);
+
+                this.AddAchievementIcon(info, bitmap);
+                this._AchievementListView.Update();
+
+                return true;
+            }
+
+            return false;
+        }
         private void AddAchievementToIconQueue(Stats.AchievementInfo info, bool startDownload)
         {
             int imageIndex = this._AchievementImageList.Images.IndexOfKey(
@@ -568,6 +581,8 @@ namespace SAM.Game
             }
             else
             {
+                if (LoadAchievementIconLocally(info)) return;
+
                 this._IconQueue.Add(info);
 
                 if (startDownload == true)

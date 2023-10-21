@@ -42,7 +42,6 @@ namespace SAM.Picker
 
         private readonly Dictionary<uint, GameInfo> _Games;
         private readonly List<GameInfo> _FilteredGames;
-        private int _SelectedGameIndex;
 
         private readonly List<string> _LogosAttempted;
         private readonly ConcurrentQueue<GameInfo> _LogoQueue;
@@ -55,7 +54,6 @@ namespace SAM.Picker
         {
             this._Games = new Dictionary<uint, GameInfo>();
             this._FilteredGames = new List<GameInfo>();
-            this._SelectedGameIndex = -1;
             this._LogosAttempted = new List<string>();
             this._LogoQueue = new ConcurrentQueue<GameInfo>();
 
@@ -137,7 +135,6 @@ namespace SAM.Picker
 
         private void RefreshGames()
         {
-            this._SelectedGameIndex = -1;
             this._FilteredGames.Clear();
             foreach (var info in this._Games.Values.OrderBy(gi => gi.Name))
             {
@@ -247,12 +244,25 @@ namespace SAM.Picker
                 "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{0}/{1}.jpg",
                 info.Id,
                 info.Logo);
+            var logoDirLocal = string.Format(
+               CultureInfo.InvariantCulture,
+               "{0}/logocache/{1}",
+               Path.GetDirectoryName(Application.ExecutablePath),
+               info.Id);
+            var logoPathLocal = logoDirLocal + "/" + info.Logo + ".jpg";
             using (var downloader = new WebClient())
             {
                 try
                 {
-                    var data = downloader.DownloadData(new Uri(logoPath));
-                    using (var stream = new MemoryStream(data, false))
+                    System.IO.Directory.CreateDirectory(logoDirLocal);
+
+                    if (!File.Exists(logoPathLocal))
+                    {
+                        var data = downloader.DownloadData(new Uri(logoPath));
+                        File.WriteAllBytes(logoPathLocal, data);
+                    }
+
+                    using (var stream = File.OpenRead(logoPathLocal))
                     {
                         var bitmap = new Bitmap(stream);
                         e.Result = new LogoInfo(info.Id, bitmap);
@@ -373,14 +383,11 @@ namespace SAM.Picker
             this._CallbackTimer.Enabled = true;
         }
 
-        private void OnSelectGame(object sender, ListViewItemSelectionChangedEventArgs e)
-        {
-            this._SelectedGameIndex = e.ItemIndex;
-        }
 
         private void OnActivateGame(object sender, EventArgs e)
         {
-            var index = this._SelectedGameIndex;
+            var focusedItem = (sender as DoubleBufferedListView).FocusedItem;
+            var index = focusedItem != null ? focusedItem.Index : -1;
             if (index < 0 || index >= this._FilteredGames.Count)
             {
                 return;
