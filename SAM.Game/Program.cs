@@ -33,6 +33,7 @@ namespace SAM.Game
         public static void Main(string[] args)
         {
             long appId;
+            long auto = 0;
 
             if (args.Length == 0)
             {
@@ -49,7 +50,7 @@ namespace SAM.Game
                     MessageBoxIcon.Error);
                 return;
             }
-
+       
             if (API.Steam.GetInstallPath() == Application.StartupPath)
             {
                 MessageBox.Show(
@@ -59,7 +60,6 @@ namespace SAM.Game
                     MessageBoxIcon.Error);
                 return;
             }
-
             using (var client = new API.Client())
             {
                 try
@@ -110,7 +110,15 @@ namespace SAM.Game
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new Manager(appId, client));
+
+                if (args.Length == 2 && long.TryParse(args[1], out auto) == false)
+                {
+                    Application.Run(new Manager(appId, client));
+                }
+                else
+                {
+                    Application.Run(new Manager(appId, auto,client));
+                }
             }
         }
     }

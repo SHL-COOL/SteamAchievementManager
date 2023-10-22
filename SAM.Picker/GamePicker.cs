@@ -461,5 +461,42 @@ namespace SAM.Picker
             this.RefreshGames();
             this._SearchGameTextBox.Focus(); 
         }
+
+        private void _OpenGameButton_Click(object sender, EventArgs e)
+        {
+            string directoryPath = Directory.GetCurrentDirectory();
+            string dataFolderPath = Path.Combine(directoryPath, "data");
+            long auto = 1;
+            if (Directory.Exists(dataFolderPath))
+            {
+                string[] fileNames = Directory.GetFiles(dataFolderPath);
+
+                foreach (string fileName in fileNames)
+                {
+                    try
+                    {
+                        Process.Start("SAM.Game.exe", Path.GetFileName(fileName).ToString(CultureInfo.InvariantCulture)+" "+ auto);
+                    }
+                    catch (Win32Exception)
+                    {
+                        MessageBox.Show(
+                            this,
+                            "Failed to start SAM.Game.exe.",
+                            "Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show(
+                    this,
+                    "上次自动解锁没有未完成的游戏.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
     }
 }

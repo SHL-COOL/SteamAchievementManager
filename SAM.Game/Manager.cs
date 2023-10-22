@@ -124,6 +124,74 @@ namespace SAM.Game
             backgroundWorker.RunWorkerCompleted += backgroundWorker_RunWorkerCompleted;
         }
 
+        private readonly long _Auto;
+
+        public Manager(long gameId,long auto ,API.Client client)
+        {
+            logoDirLocal = string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}/logocache/{1}",
+                Path.GetDirectoryName(Application.ExecutablePath),
+                gameId);
+            System.IO.Directory.CreateDirectory(logoDirLocal);
+
+            this.InitializeComponent();
+
+            this._MainTabControl.SelectedTab = this._AchievementsTabPage;
+            //this.statisticsList.Enabled = this.checkBox1.Checked;
+
+            this._AchievementImageList.Images.Add("Blank", new Bitmap(64, 64));
+
+            this._StatisticsDataGridView.AutoGenerateColumns = false;
+
+            this._StatisticsDataGridView.Columns.Add("name", "Name");
+            this._StatisticsDataGridView.Columns[0].ReadOnly = true;
+            this._StatisticsDataGridView.Columns[0].Width = 200;
+            this._StatisticsDataGridView.Columns[0].DataPropertyName = "DisplayName";
+
+            this._StatisticsDataGridView.Columns.Add("value", "Value");
+            this._StatisticsDataGridView.Columns[1].ReadOnly = this._EnableStatsEditingCheckBox.Checked == false;
+            this._StatisticsDataGridView.Columns[1].Width = 90;
+            this._StatisticsDataGridView.Columns[1].DataPropertyName = "Value";
+
+            this._StatisticsDataGridView.Columns.Add("extra", "Extra");
+            this._StatisticsDataGridView.Columns[2].ReadOnly = true;
+            this._StatisticsDataGridView.Columns[2].Width = 200;
+            this._StatisticsDataGridView.Columns[2].DataPropertyName = "Extra";
+
+            this._StatisticsDataGridView.DataSource = new BindingSource
+            {
+                DataSource = this._Statistics,
+            };
+
+            this._GameId = gameId;
+            this._Auto = auto;
+            this._SteamClient = client;
+
+            this._IconDownloader.DownloadDataCompleted += this.OnIconDownload;
+
+            string name = this._SteamClient.SteamApps001.GetAppData((uint)this._GameId, "name");
+            if (name != null)
+            {
+                gameName = name;
+                base.Text += " | " + name;
+            }
+            else
+            {
+                gameName = this._GameId.ToString(CultureInfo.InvariantCulture);
+                base.Text += " | " + gameName;
+            }
+
+            this._UserStatsReceivedCallback = client.CreateAndRegisterCallback<API.Callbacks.UserStatsReceived>();
+            this._UserStatsReceivedCallback.OnRun += this.OnUserStatsReceived;
+
+            //this.UserStatsStoredCallback = new API.Callback(1102, new API.Callback.CallbackFunction(this.OnUserStatsStored));
+            this.RefreshStats();
+
+            backgroundWorker.WorkerSupportsCancellation = true;
+            backgroundWorker.DoWork += backgroundWorker_DoWork;
+            backgroundWorker.RunWorkerCompleted += backgroundWorker_RunWorkerCompleted;
+        }
         string gameName;
         private BackgroundWorker backgroundWorker = new BackgroundWorker();
         private void AddAchievementIcon(Stats.AchievementInfo info, Image icon)
@@ -424,8 +492,31 @@ namespace SAM.Game
                 "已检索到{0}项成就和{1}项统计信息。",
                 this._AchievementListView.Items.Count,
                 this._StatisticsDataGridView.Rows.Count);
+
+
+            if(this._Auto == 1)
+            {
+                if(this._AchievementListView.Items.Count > 0)
+                {
+                    OnStore(_AutoStoreButton, new EventArgs());
+                }
+            }
+
+            if (File.Exists(iniFilePath))
+            {
+                 appToken = ReadIniValue("General", "AppToken");
+                 uids = ReadIniValue("General", "UIDs")
+                    .Split(',')
+                    .Select(uid => uid.Trim())
+                    .ToList();
+            }
+            else
+            {
+                CreateIniFile();
+            }
             this.EnableInput();
         }
+        string appToken; List<string> uids;
 
         private void RefreshStats()
         {
@@ -764,6 +855,8 @@ namespace SAM.Game
             return true;
         }
         Random random = new Random();
+
+        bool isAuto = false;
         private void OnStore(object sender, EventArgs e)
         {
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; // TLS 1.2
@@ -776,13 +869,13 @@ namespace SAM.Game
                     count++;
                 }
             }
-            MessageBox.Show(
-                this,
-                "总共有" + count,
-                "Information",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
-
+            //MessageBox.Show(
+            //    this,
+            //    "总共有" + count,
+            //    "Information",
+            //    MessageBoxButtons.OK,
+            //    MessageBoxIcon.Information);
+            isAuto = true;
             // 启动BackgroundWorker执行任务
             backgroundWorker.RunWorkerAsync(count);
         }
@@ -793,6 +886,17 @@ namespace SAM.Game
 
             for (int i = 0; i < count; i++)
             {
+                int randomWaitTimeMs = random.Next(1, 31) * 60000;
+                DateTime startTime = DateTime.Now;
+                while ((DateTime.Now - startTime).TotalMilliseconds < randomWaitTimeMs)
+                {
+                    TimeSpan remainingTime = TimeSpan.FromMilliseconds(randomWaitTimeMs - (DateTime.Now - startTime).TotalMilliseconds);
+                    this._GameStatusLabel.Text = "进度（" + (i + 1) + "/" + count + "） 下一个解锁时间 " + (int)remainingTime.TotalMinutes + " 分钟 " + remainingTime.Seconds + " 秒";
+                    Application.DoEvents();
+                    System.Threading.Thread.Sleep(1000);
+                }
+
+
                 foreach (ListViewItem item in this._AchievementListView.Items)
                 {
                     if (!item.Checked)
@@ -801,8 +905,8 @@ namespace SAM.Game
                         string url = "https://wxpusher.zjiecode.com/api/send/message";
                         PushData pushData = new PushData
                         {
-                            appToken = "AT_oeZm9doV8PG9zODpWDxvFtEQvRalfqQP",  //输入token
-                            uids = new List<string> { "UID_UIIW09qBWJFZSuKiMkoh34LRBnhU" }, //用户ID
+                            appToken = appToken,  //输入token
+                            uids = uids, //用户ID
                             topicIds = new List<object>(),
                             summary = "解锁（" + (i + 1) + "/" + count + "）",
                             content = "<p><span style=\"color:#000000\"><span style=\"background-color:#ffffff\"><strong><span style=\"font-size:30px\">🎮" + gameName + "</span></strong><span style=\"font-size:16px\">的成就</span><strong><span style=\"font-size:30px\">" + item.Text + "</span></strong><span style=\"font-size:16px\"> 解锁成功<u><em>（" + (i + 1) + " / " + count + "）</em></u></span></span></span></p>",
@@ -879,15 +983,7 @@ namespace SAM.Game
                 {
                     break;
                 }
-                int randomWaitTimeMs = random.Next(1, 31) * 60000;
-                DateTime startTime = DateTime.Now;
-                while ((DateTime.Now - startTime).TotalMilliseconds < randomWaitTimeMs)
-                {
-                    TimeSpan remainingTime = TimeSpan.FromMilliseconds(randomWaitTimeMs - (DateTime.Now - startTime).TotalMilliseconds);
-                    this._GameStatusLabel.Text = "进度（" + (i + 1) + "/" + count + "） 下一个解锁时间 " + (int)remainingTime.TotalMinutes + " 分钟 " + remainingTime.Seconds + " 秒";
-                    Application.DoEvents();
-                    System.Threading.Thread.Sleep(1000); 
-                }
+              
 
 
             }
@@ -1081,6 +1177,108 @@ namespace SAM.Game
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
             this.RefreshStats();
+        }
+
+        private void Copy_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(gameName);
+            this.Close();
+        }
+
+        private void Manager_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            string directoryPath = Directory.GetCurrentDirectory();
+            string filePath = Path.Combine(directoryPath, "data", this._GameId.ToString());
+            if (isAuto)
+            {
+                if (!Directory.Exists(Path.Combine(directoryPath, "data")))
+                {
+                    Directory.CreateDirectory(Path.Combine(directoryPath, "data"));
+                }
+                bool isDone = true;
+                foreach (ListViewItem item in this._AchievementListView.Items)
+                {
+                    if (!item.Checked)
+                    {
+                        isDone = false;
+                        break;
+                    }
+                }
+                if (!isDone)
+                {
+                    File.Create(filePath).Close();
+                }
+                else
+                {
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                    }
+                }
+            }
+        }
+
+        static string iniFilePath = "config.ini";
+        static string ReadIniValue(string section, string key)
+        {
+            if (!File.Exists(iniFilePath))
+            {
+                throw new FileNotFoundException("INI 文件不存在。");
+            }
+
+            string value = "";
+
+            using (StreamReader reader = new StreamReader(iniFilePath))
+            {
+                string line;
+                bool sectionFound = false;
+
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (line.StartsWith("[") && line.EndsWith("]"))
+                    {
+                        string currentSection = line.Substring(1, line.Length - 2);
+
+                        if (currentSection.Equals(section, StringComparison.OrdinalIgnoreCase))
+                        {
+                            sectionFound = true;
+                        }
+                        else
+                        {
+                            sectionFound = false;
+                        }
+                    }
+                    else if (sectionFound && line.Contains("="))
+                    {
+                        string[] parts = line.Split(new char[] { '=' }, 2, StringSplitOptions.RemoveEmptyEntries);
+
+                        if (parts.Length == 2)
+                        {
+                            string currentKey = parts[0].Trim();
+                            string currentValue = parts[1].Trim();
+
+                            if (currentKey.Equals(key, StringComparison.OrdinalIgnoreCase))
+                            {
+                                value = currentValue;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return value;
+        }
+
+        static void CreateIniFile()
+        {
+            using (StreamWriter writer = new StreamWriter(iniFilePath))
+            {
+                writer.WriteLine("[General]");
+                writer.WriteLine("AppToken=");
+                writer.WriteLine("UIDs=");
+            }
+
         }
     }
 }
