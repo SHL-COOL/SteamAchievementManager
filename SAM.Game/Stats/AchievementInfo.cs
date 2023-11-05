@@ -33,6 +33,7 @@ namespace SAM.Game.Stats
         public string IconLocked;
         public string Name;
         public string Description;
+        public float SortIndex;
         public ListViewItem Item;
 
         #region public int ImageIndex;

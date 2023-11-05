@@ -61,6 +61,7 @@
             this._AchievementListView = new SAM.Game.DoubleBufferedListView();
             this._AchievementNameColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this._AchievementDescriptionColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this._Sort = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             _ToolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this._MainToolStrip.SuspendLayout();
             this._MainStatusStrip.SuspendLayout();
@@ -86,7 +87,7 @@
             this.Copy});
             this._MainToolStrip.Location = new System.Drawing.Point(0, 0);
             this._MainToolStrip.Name = "_MainToolStrip";
-            this._MainToolStrip.Size = new System.Drawing.Size(632, 25);
+            this._MainToolStrip.Size = new System.Drawing.Size(674, 25);
             this._MainToolStrip.TabIndex = 1;
             // 
             // _StoreButton
@@ -155,9 +156,9 @@
             this._CountryStatusLabel,
             this._GameStatusLabel,
             this._DownloadStatusLabel});
-            this._MainStatusStrip.Location = new System.Drawing.Point(0, 340);
+            this._MainStatusStrip.Location = new System.Drawing.Point(0, 402);
             this._MainStatusStrip.Name = "_MainStatusStrip";
-            this._MainStatusStrip.Size = new System.Drawing.Size(632, 22);
+            this._MainStatusStrip.Size = new System.Drawing.Size(674, 22);
             this._MainStatusStrip.TabIndex = 4;
             this._MainStatusStrip.Text = "statusStrip1";
             // 
@@ -169,7 +170,7 @@
             // _GameStatusLabel
             // 
             this._GameStatusLabel.Name = "_GameStatusLabel";
-            this._GameStatusLabel.Size = new System.Drawing.Size(617, 17);
+            this._GameStatusLabel.Size = new System.Drawing.Size(659, 17);
             this._GameStatusLabel.Spring = true;
             this._GameStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
@@ -196,7 +197,7 @@
             this._MainTabControl.Location = new System.Drawing.Point(8, 30);
             this._MainTabControl.Name = "_MainTabControl";
             this._MainTabControl.SelectedIndex = 0;
-            this._MainTabControl.Size = new System.Drawing.Size(616, 308);
+            this._MainTabControl.Size = new System.Drawing.Size(658, 370);
             this._MainTabControl.TabIndex = 5;
             // 
             // _AchievementsTabPage
@@ -206,7 +207,7 @@
             this._AchievementsTabPage.Location = new System.Drawing.Point(4, 22);
             this._AchievementsTabPage.Name = "_AchievementsTabPage";
             this._AchievementsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this._AchievementsTabPage.Size = new System.Drawing.Size(608, 282);
+            this._AchievementsTabPage.Size = new System.Drawing.Size(650, 344);
             this._AchievementsTabPage.TabIndex = 0;
             this._AchievementsTabPage.Text = "Achievements";
             this._AchievementsTabPage.UseVisualStyleBackColor = true;
@@ -226,7 +227,7 @@
             this._MatchingStringTextBox});
             this._AchievementsToolStrip.Location = new System.Drawing.Point(3, 3);
             this._AchievementsToolStrip.Name = "_AchievementsToolStrip";
-            this._AchievementsToolStrip.Size = new System.Drawing.Size(602, 25);
+            this._AchievementsToolStrip.Size = new System.Drawing.Size(644, 25);
             this._AchievementsToolStrip.TabIndex = 5;
             // 
             // _LockAllButton
@@ -316,7 +317,7 @@
             this._StatisticsTabPage.Location = new System.Drawing.Point(4, 22);
             this._StatisticsTabPage.Name = "_StatisticsTabPage";
             this._StatisticsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this._StatisticsTabPage.Size = new System.Drawing.Size(608, 282);
+            this._StatisticsTabPage.Size = new System.Drawing.Size(650, 344);
             this._StatisticsTabPage.TabIndex = 1;
             this._StatisticsTabPage.Text = "Statistics";
             this._StatisticsTabPage.UseVisualStyleBackColor = true;
@@ -326,7 +327,7 @@
             this._EnableStatsEditingCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this._EnableStatsEditingCheckBox.AutoSize = true;
-            this._EnableStatsEditingCheckBox.Location = new System.Drawing.Point(6, 263);
+            this._EnableStatsEditingCheckBox.Location = new System.Drawing.Point(6, 325);
             this._EnableStatsEditingCheckBox.Name = "_EnableStatsEditingCheckBox";
             this._EnableStatsEditingCheckBox.Size = new System.Drawing.Size(642, 16);
             this._EnableStatsEditingCheckBox.TabIndex = 1;
@@ -345,7 +346,7 @@
             this._StatisticsDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this._StatisticsDataGridView.Location = new System.Drawing.Point(6, 6);
             this._StatisticsDataGridView.Name = "_StatisticsDataGridView";
-            this._StatisticsDataGridView.Size = new System.Drawing.Size(596, 252);
+            this._StatisticsDataGridView.Size = new System.Drawing.Size(638, 314);
             this._StatisticsDataGridView.TabIndex = 0;
             this._StatisticsDataGridView.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.OnStatCellEndEdit);
             this._StatisticsDataGridView.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.OnStatDataError);
@@ -358,7 +359,8 @@
             this._AchievementListView.CheckBoxes = true;
             this._AchievementListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this._AchievementNameColumnHeader,
-            this._AchievementDescriptionColumnHeader});
+            this._AchievementDescriptionColumnHeader,
+            this._Sort});
             this._AchievementListView.Dock = System.Windows.Forms.DockStyle.Fill;
             this._AchievementListView.ForeColor = System.Drawing.Color.White;
             this._AchievementListView.FullRowSelect = true;
@@ -367,9 +369,9 @@
             this._AchievementListView.LargeImageList = this._AchievementImageList;
             this._AchievementListView.Location = new System.Drawing.Point(3, 28);
             this._AchievementListView.Name = "_AchievementListView";
-            this._AchievementListView.Size = new System.Drawing.Size(602, 251);
+            this._AchievementListView.Size = new System.Drawing.Size(644, 313);
             this._AchievementListView.SmallImageList = this._AchievementImageList;
-            this._AchievementListView.Sorting = System.Windows.Forms.SortOrder.Ascending;
+            this._AchievementListView.Sorting = System.Windows.Forms.SortOrder.Descending;
             this._AchievementListView.TabIndex = 4;
             this._AchievementListView.UseCompatibleStateImageBehavior = false;
             this._AchievementListView.View = System.Windows.Forms.View.Details;
@@ -385,11 +387,15 @@
             this._AchievementDescriptionColumnHeader.Text = "Description";
             this._AchievementDescriptionColumnHeader.Width = 380;
             // 
+            // _Sort
+            // 
+            this._Sort.Text = "SortIndex";
+            // 
             // Manager
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(632, 362);
+            this.ClientSize = new System.Drawing.Size(674, 424);
             this.Controls.Add(this._MainToolStrip);
             this.Controls.Add(this._MainTabControl);
             this.Controls.Add(this._MainStatusStrip);
@@ -398,6 +404,7 @@
             this.Name = "Manager";
             this.Text = "Steam Achievement Manager 7.0";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Manager_FormClosing);
+            this.Load += new System.EventHandler(this.Manager_Load);
             this._MainToolStrip.ResumeLayout(false);
             this._MainToolStrip.PerformLayout();
             this._MainStatusStrip.ResumeLayout(false);
@@ -447,6 +454,7 @@
         private System.Windows.Forms.ToolStripSeparator _ToolStripSeparator2;
         private System.Windows.Forms.ToolStripButton _StoreButton;
         private System.Windows.Forms.ToolStripButton Copy;
+        private System.Windows.Forms.ColumnHeader _Sort;
     }
 }
 

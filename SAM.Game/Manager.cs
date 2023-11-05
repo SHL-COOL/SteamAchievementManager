@@ -29,6 +29,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
@@ -502,22 +503,28 @@ namespace SAM.Game
                 }
             }
 
+            InitConfig();
+            this.EnableInput();
+        }
+        string access_token,key; string appToken; List<string> uids;
+
+        void InitConfig()
+        {
             if (File.Exists(iniFilePath))
             {
-                 appToken = ReadIniValue("General", "AppToken");
-                 uids = ReadIniValue("General", "UIDs")
-                    .Split(',')
-                    .Select(uid => uid.Trim())
-                    .ToList();
+                access_token = ReadIniValue("General", "Access_Token");
+                key = ReadIniValue("General", "Key");
+                appToken = ReadIniValue("General", "AppToken");
+                uids = ReadIniValue("General", "UIDs")
+                   .Split(',')
+                   .Select(uid => uid.Trim())
+                   .ToList();
             }
             else
             {
                 CreateIniFile();
             }
-            this.EnableInput();
         }
-        string appToken; List<string> uids;
-
         private void RefreshStats()
         {
             this._AchievementListView.Items.Clear();
@@ -541,8 +548,86 @@ namespace SAM.Game
 
             this._AchievementListView.Items.Clear();
             this._AchievementListView.BeginUpdate();
-            //this.Achievements.Clear();
+            InitConfig();
+            string url = "https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?access_token="+access_token+"&key="+key+"&l=schinese&appid=" + this._GameId;
+            this._GameStatusLabel.Text = "获取全球成就排行榜中";
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "GET";
+            RootObject rootObject = null ;
+            List<GetGlobalAchievementPercentagesForAppAchievement> achievements = null;
+            try
+            {
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
+                using (Stream dataStream = response.GetResponseStream())
+                {
+                    StreamReader reader = new StreamReader(dataStream);
+                    string responseText = reader.ReadToEnd();
+
+                    MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(responseText));
+                    DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(RootObject));
+                    rootObject  = (RootObject)serializer.ReadObject(memoryStream);
+
+                }
+                response.Close();
+            }
+            catch (Exception ex)
+            {
+                this._GameStatusLabel.Text = "发生异常：" + ex.Message;
+            }
+
+            if(rootObject!= null)
+            {
+                url = "https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=" + this._GameId;
+                request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "GET";
+
+                try
+                {
+                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+                    using (Stream dataStream = response.GetResponseStream())
+                    {
+                        StreamReader reader = new StreamReader(dataStream);
+                        string responseText = reader.ReadToEnd();
+
+                        MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(responseText));
+                        DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(GetGlobalAchievementPercentagesForAppRoot));
+
+                        using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(responseText)))
+                        {
+                            GetGlobalAchievementPercentagesForAppRoot result = (GetGlobalAchievementPercentagesForAppRoot)serializer.ReadObject(stream);
+
+                            GetGlobalAchievementPercentagesForAppAchievementPercentages achievementPercentages = result.AchievementPercentages;
+                            achievements = achievementPercentages.Achievements;
+
+                            foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
+                            {
+                                foreach (var item in rootObject.Game.AvailableGameStats.Achievements)
+                                {
+                                    if(item.Name == achievement.Name)
+                                    {
+                                        achievement.Name = item.DisplayName;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                    response.Close();
+                }
+                catch (Exception ex)
+                {
+                    this._GameStatusLabel.Text = "发生异常：" + ex.Message;
+                }
+
+            }
+
+
+            this._GameStatusLabel.Text = "获取完成";
+
+            int index = 0;
             foreach (var def in this._AchievementDefinitions)
             {
                 if (string.IsNullOrEmpty(def.Id) == true)
@@ -560,6 +645,15 @@ namespace SAM.Game
                 {
                     continue;
                 }
+                double sort = 0;
+                foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
+                {
+                    if (def.Name == achievement.Name)
+                    {
+                        sort = achievement.Percent;
+                        break;
+                    }
+                }
 
                 var info = new Stats.AchievementInfo()
                 {
@@ -570,6 +664,7 @@ namespace SAM.Game
                     Permission = def.Permission,
                     Name = def.Name,
                     Description = def.Description,
+                    SortIndex = (float)sort,
                 };
 
                 var item = new ListViewItem()
@@ -583,6 +678,7 @@ namespace SAM.Game
                 info.Item = item;
 
                 item.SubItems.Add(info.Description);
+                item.SubItems.Add(info.SortIndex.ToString());
 
                 info.ImageIndex = 0;
 
@@ -914,7 +1010,7 @@ namespace SAM.Game
                             verifyPay = false
                         };
                         DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(PushData));
-                        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                        var request = (HttpWebRequest)WebRequest.Create(url);
                         request.Method = "POST";
                         request.ContentType = "application/json";
 
@@ -983,8 +1079,6 @@ namespace SAM.Game
                 {
                     break;
                 }
-              
-
 
             }
             this.Close();
@@ -1239,7 +1333,7 @@ namespace SAM.Game
                     {
                         string currentSection = line.Substring(1, line.Length - 2);
 
-                        if (currentSection.Equals(section, StringComparison.OrdinalIgnoreCase))
+                        if (string.Equals(currentSection, section, StringComparison.OrdinalIgnoreCase))
                         {
                             sectionFound = true;
                         }
@@ -1257,7 +1351,7 @@ namespace SAM.Game
                             string currentKey = parts[0].Trim();
                             string currentValue = parts[1].Trim();
 
-                            if (currentKey.Equals(key, StringComparison.OrdinalIgnoreCase))
+                            if (string.Equals(currentKey, key, StringComparison.OrdinalIgnoreCase))
                             {
                                 value = currentValue;
                                 break;
@@ -1277,8 +1371,91 @@ namespace SAM.Game
                 writer.WriteLine("[General]");
                 writer.WriteLine("AppToken=");
                 writer.WriteLine("UIDs=");
+                writer.WriteLine("Access_Token=");
+                writer.WriteLine("Key=");
             }
 
         }
+
+        private void Manager_Load(object sender, EventArgs e)
+        {
+            this._AchievementListView.ListViewItemSorter = new ListViewColumnSorter();
+            this._AchievementListView.ColumnClick += new ColumnClickEventHandler(ListViewHelper.ListView_ColumnClick);
+        }
     }
+}
+[DataContract]
+public class Achievement
+{
+    [DataMember(Name = "name")]
+    public string Name { get; set; }
+
+    [DataMember(Name = "defaultvalue")]
+    public int DefaultValue { get; set; }
+
+    [DataMember(Name = "displayName")]
+    public string DisplayName { get; set; }
+
+    [DataMember(Name = "hidden")]
+    public int Hidden { get; set; }
+
+    [DataMember(Name = "description")]
+    public string Description { get; set; }
+
+    [DataMember(Name = "icon")]
+    public string Icon { get; set; }
+
+    [DataMember(Name = "icongray")]
+    public string IconGray { get; set; }
+}
+
+[DataContract]
+public class AvailableGameStats
+{
+    [DataMember(Name = "achievements")]
+    public List<Achievement> Achievements { get; set; }
+}
+
+[DataContract]
+public class Game
+{
+    [DataMember(Name = "gameName")]
+    public string GameName { get; set; }
+
+    [DataMember(Name = "gameVersion")]
+    public string GameVersion { get; set; }
+
+    [DataMember(Name = "availableGameStats")]
+    public AvailableGameStats AvailableGameStats { get; set; }
+}
+
+[DataContract]
+public class RootObject
+{
+    [DataMember(Name = "game")]
+    public Game Game { get; set; }
+}
+
+[DataContract]
+public class GetGlobalAchievementPercentagesForAppAchievement
+{
+    [DataMember(Name = "name")]
+    public string Name { get; set; }
+
+    [DataMember(Name = "percent")]
+    public double Percent { get; set; }
+}
+
+[DataContract]
+public class GetGlobalAchievementPercentagesForAppAchievementPercentages
+{
+    [DataMember(Name = "achievements")]
+    public List<GetGlobalAchievementPercentagesForAppAchievement> Achievements { get; set; }
+}
+
+[DataContract]
+public class GetGlobalAchievementPercentagesForAppRoot
+{
+    [DataMember(Name = "achievementpercentages")]
+    public GetGlobalAchievementPercentagesForAppAchievementPercentages AchievementPercentages { get; set; }
 }

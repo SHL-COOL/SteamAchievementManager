@@ -73,6 +73,8 @@ namespace SAM.Picker
             this._AppDataChangedCallback.OnRun += this.OnAppDataChanged;
 
             this.AddGames();
+
+          
         }
 
         private void OnAppDataChanged(APITypes.AppDataChanged param)
