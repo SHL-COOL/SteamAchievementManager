@@ -20,6 +20,7 @@
  *    distribution.
  */
 
+using Microsoft.Win32;
 using SAM.API;
 using System;
 using System.Collections.Generic;
@@ -123,6 +124,9 @@ namespace SAM.Game
             backgroundWorker.WorkerSupportsCancellation = true;
             backgroundWorker.DoWork += backgroundWorker_DoWork;
             backgroundWorker.RunWorkerCompleted += backgroundWorker_RunWorkerCompleted;
+
+
+            SystemEvents.SessionEnding += SystemEvents_SessionEnding;
         }
 
         private readonly long _Auto;
@@ -192,6 +196,9 @@ namespace SAM.Game
             backgroundWorker.WorkerSupportsCancellation = true;
             backgroundWorker.DoWork += backgroundWorker_DoWork;
             backgroundWorker.RunWorkerCompleted += backgroundWorker_RunWorkerCompleted;
+
+
+            SystemEvents.SessionEnding += SystemEvents_SessionEnding;
         }
         string gameName;
         private BackgroundWorker backgroundWorker = new BackgroundWorker();
@@ -1177,12 +1184,8 @@ namespace SAM.Game
 
             if ((info.Permission & 3) != 0)
             {
-                MessageBox.Show(
-                    this,
-                    "Sorry, but this is a protected achievement and cannot be managed with Steam Achievement Manager.",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+
+                this._GameStatusLabel.Text = "Sorry, but this is a protected achievement and cannot be managed with Steam Achievement Manager.";
                 e.NewValue = e.CurrentValue;
             }
         }
@@ -1278,8 +1281,17 @@ namespace SAM.Game
             Clipboard.SetText(gameName);
             this.Close();
         }
+        private void SystemEvents_SessionEnding(object sender, SessionEndingEventArgs e)
+        {
+            Close();
+        }
 
         private void Manager_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Close();
+        }
+
+        void Close()
         {
             string directoryPath = Directory.GetCurrentDirectory();
             string filePath = Path.Combine(directoryPath, "data", this._GameId.ToString());

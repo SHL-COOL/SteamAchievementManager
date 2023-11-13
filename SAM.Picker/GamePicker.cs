@@ -88,9 +88,9 @@ namespace SAM.Picker
                 this.DownloadNextLogo();
             }
         }
-
         private void DoDownloadList(object sender, DoWorkEventArgs e)
         {
+            ServicePointManager.ServerCertificateValidationCallback = (sender1, certificate, chain, sslPolicyErrors) => true;
             var pairs = new List<KeyValuePair<uint, string>>();
             byte[] bytes;
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; // TLS 1.2
