@@ -25,6 +25,7 @@ using SAM.API;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -133,6 +134,7 @@ namespace SAM.Game
 
         public Manager(long gameId,long auto ,API.Client client)
         {
+            //System.Diagnostics.Debugger.Launch();
             logoDirLocal = string.Format(
                 CultureInfo.InvariantCulture,
                 "{0}/logocache/{1}",
@@ -615,6 +617,7 @@ namespace SAM.Game
                                     if(item.Name == achievement.Name)
                                     {
                                         achievement.Name = item.DisplayName;
+                                        achievement.Name1 = item.Name;
                                         break;
                                     }
                                 }
@@ -652,7 +655,7 @@ namespace SAM.Game
                 {
                     continue;
                 }
-                double sort = 0;
+                double sort = -1;
                 foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
                 {
                     if (def.Name == achievement.Name)
@@ -661,7 +664,73 @@ namespace SAM.Game
                         break;
                     }
                 }
+                if(sort == -1)
+                {
+                    foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
+                    {
+                        if (def.Name == achievement.Name1)
+                        {
+                            sort = achievement.Percent;
+                            break;
+                        }
+                    }
+                }
 
+                if (sort == -1)
+                {
+                    foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
+                    {
+                        if (def.Id == achievement.Name1)
+                        {
+                            sort = achievement.Percent;
+                            break;
+                        }
+                    }
+                }
+
+                if (sort == -1)
+                {
+                    foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
+                    {
+                        if (def.Id == achievement.Name)
+                        {
+                            sort = achievement.Percent;
+                            break;
+                        }
+                    }
+                }
+
+                if (sort == -1)
+                {
+                    foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
+                    {
+                        var noTrim = def.Name.Replace(" ", ""); ;
+                        if (noTrim == achievement.Name1)
+                        {
+                            sort = achievement.Percent;
+                            break;
+                        }
+                    }
+                }
+                
+                if (sort == -1)
+                {
+                    foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
+                    {
+                        var Case = ConvertToCamelCase(def.Name);
+                        if (Case == achievement.Name1)
+                        {
+                            sort = achievement.Percent;
+                            break;
+                        }
+                    }
+                    
+                }
+                if (sort == -1)
+                {
+                   
+
+                }
                 var info = new Stats.AchievementInfo()
                 {
                     Id = def.Id,
@@ -698,7 +767,22 @@ namespace SAM.Game
 
             this.DownloadNextIcon();
         }
+        string ConvertToCamelCase(string input)
+        {
+            string[] words = input.Split(' ');
 
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(words[i]))
+                {
+                    words[i] = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words[i].ToLower());
+                }
+            }
+
+            string result = string.Join("", words);
+
+            return result;
+        }
         private void GetStatistics()
         {
             this._Statistics.Clear();
@@ -1088,7 +1172,7 @@ namespace SAM.Game
                 }
 
             }
-            this.Close();
+            this.ManagerClose();
             this.RefreshStats();
         }
 
@@ -1279,19 +1363,19 @@ namespace SAM.Game
         private void Copy_Click(object sender, EventArgs e)
         {
             Clipboard.SetText(gameName);
-            this.Close();
+            this.ManagerClose();
         }
         private void SystemEvents_SessionEnding(object sender, SessionEndingEventArgs e)
         {
-            Close();
+            ManagerClose();
         }
 
         private void Manager_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Close();
+            ManagerClose();
         }
 
-        void Close()
+        void ManagerClose()
         {
             string directoryPath = Directory.GetCurrentDirectory();
             string filePath = Path.Combine(directoryPath, "data", this._GameId.ToString());
@@ -1453,6 +1537,8 @@ public class GetGlobalAchievementPercentagesForAppAchievement
 {
     [DataMember(Name = "name")]
     public string Name { get; set; }
+    [DataMember(Name = "name1")]
+    public string Name1 { get; set; }
 
     [DataMember(Name = "percent")]
     public double Percent { get; set; }

@@ -404,6 +404,7 @@ namespace SAM.Picker
             try
             {
                 Process.Start("SAM.Game.exe", info.Id.ToString(CultureInfo.InvariantCulture));
+             
             }
             catch (Win32Exception)
             {
