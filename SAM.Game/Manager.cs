@@ -63,6 +63,7 @@ namespace SAM.Game
 
         public Manager(long gameId, API.Client client)
         {
+            //System.Diagnostics.Debugger.Launch();
             logoDirLocal = string.Format(
                CultureInfo.InvariantCulture,
                "{0}/logocache/{1}",
@@ -117,6 +118,7 @@ namespace SAM.Game
             }
 
             this._UserStatsReceivedCallback = client.CreateAndRegisterCallback<API.Callbacks.UserStatsReceived>();
+            this._UserStatsReceivedCallback.OnRun -= this.OnUserStatsReceived;
             this._UserStatsReceivedCallback.OnRun += this.OnUserStatsReceived;
 
             //this.UserStatsStoredCallback = new API.Callback(1102, new API.Callback.CallbackFunction(this.OnUserStatsStored));
@@ -190,6 +192,7 @@ namespace SAM.Game
             }
 
             this._UserStatsReceivedCallback = client.CreateAndRegisterCallback<API.Callbacks.UserStatsReceived>();
+            this._UserStatsReceivedCallback.OnRun -= this.OnUserStatsReceived;
             this._UserStatsReceivedCallback.OnRun += this.OnUserStatsReceived;
 
             //this.UserStatsStoredCallback = new API.Callback(1102, new API.Callback.CallbackFunction(this.OnUserStatsStored));
@@ -1044,6 +1047,7 @@ namespace SAM.Game
         Random random = new Random();
 
         bool isAuto = false;
+        bool isOne = true;
         private void OnStore(object sender, EventArgs e)
         {
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; // TLS 1.2
@@ -1056,6 +1060,10 @@ namespace SAM.Game
                     count++;
                 }
             }
+            if (count == 0)
+            {
+                ManagerClose();
+            }
             //MessageBox.Show(
             //    this,
             //    "总共有" + count,
@@ -1064,15 +1072,20 @@ namespace SAM.Game
             //    MessageBoxIcon.Information);
             isAuto = true;
             // 启动BackgroundWorker执行任务
-            backgroundWorker.RunWorkerAsync(count);
+            if (isOne)
+            {
+                backgroundWorker.RunWorkerAsync(count);
+            }
         }
 
         private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
+            isOne = false;
             int count = (int)e.Argument;
 
             for (int i = 0; i < count; i++)
             {
+
                 int randomWaitTimeMs = random.Next(1, 31) * 60000;
                 DateTime startTime = DateTime.Now;
                 while ((DateTime.Now - startTime).TotalMilliseconds < randomWaitTimeMs)
@@ -1088,6 +1101,19 @@ namespace SAM.Game
                 {
                     if (!item.Checked)
                     {
+
+                        var info = this._AchievementListView.Items[item.Index].Tag
+                        as Stats.AchievementInfo;
+                        if (info == null)
+                        {
+                            continue;
+                        }
+
+                        if ((info.Permission & 3) != 0)
+                        {
+                            continue;
+                        }
+
                         item.Checked = true;
                         string url = "https://wxpusher.zjiecode.com/api/send/message";
                         PushData pushData = new PushData
@@ -1386,8 +1412,23 @@ namespace SAM.Game
                     Directory.CreateDirectory(Path.Combine(directoryPath, "data"));
                 }
                 bool isDone = true;
+                if (this._AchievementListView == null || this._AchievementListView.Items == null)
+                    return;
                 foreach (ListViewItem item in this._AchievementListView.Items)
                 {
+
+                    var info = this._AchievementListView.Items[item.Index].Tag
+                       as Stats.AchievementInfo;
+                    if (info == null)
+                    {
+                        continue;
+                    }
+
+                    if ((info.Permission & 3) != 0)
+                    {
+                        continue;
+                    }
+
                     if (!item.Checked)
                     {
                         isDone = false;
