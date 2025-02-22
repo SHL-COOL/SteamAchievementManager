@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2019 Rick (rick 'at' gibbed 'dot' us)
+/* Copyright (c) 2019 Rick (rick 'at' gibbed 'dot' us)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -519,15 +519,17 @@ namespace SAM.Game
             this.EnableInput();
         }
         string access_token,key; string appToken; List<string> uids;
-
+        int minSeconds, maxSeconds;
         void InitConfig()
         {
             if (File.Exists(iniFilePath))
             {
-                access_token = ReadIniValue("General", "Access_Token");
-                key = ReadIniValue("General", "Key");
-                appToken = ReadIniValue("General", "AppToken");
-                uids = ReadIniValue("General", "UIDs")
+                access_token = ReadIniValue<string>("General", "Access_Token");
+                key = ReadIniValue<string>("General", "Key");
+                appToken = ReadIniValue<string>("General", "AppToken");
+                minSeconds = ReadIniValue<int>("General", "MinSeconds");
+                maxSeconds = ReadIniValue<int>("General", "MaxSeconds");
+                uids = ReadIniValue<string>("General", "UIDs")
                    .Split(',')
                    .Select(uid => uid.Trim())
                    .ToList();
@@ -552,6 +554,24 @@ namespace SAM.Game
             this.DisableInput();
         }
 
+        private void SaveLog(string text)
+        {
+            string textToAppend = text;
+            string filePath = "log.txt"; 
+
+            string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filePath);
+
+            try
+            {
+                File.AppendAllText(fullPath, textToAppend + Environment.NewLine);
+            }
+            catch (Exception ex)
+            {
+                this._GameStatusLabel.Text = "保存log失败："+ ex.Message;
+            }
+        }
+
+
         private bool _IsUpdatingAchievementList;
 
         private void GetAchievements()
@@ -562,6 +582,7 @@ namespace SAM.Game
             this._AchievementListView.BeginUpdate();
             InitConfig();
             string url = "https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?access_token="+access_token+"&key="+key+"&l=schinese&appid=" + this._GameId;
+            SaveLog("获取全球成就排行榜中"+url);
             this._GameStatusLabel.Text = "获取全球成就排行榜中";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
@@ -591,6 +612,7 @@ namespace SAM.Game
             if(rootObject!= null)
             {
                 url = "https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=" + this._GameId;
+                SaveLog("获取游戏完成成就排行榜" + url);
                 request = (HttpWebRequest)WebRequest.Create(url);
                 request.Method = "GET";
 
@@ -617,14 +639,21 @@ namespace SAM.Game
                             {
                                 foreach (var item in rootObject.Game.AvailableGameStats.Achievements)
                                 {
-                                    if(item.Name == achievement.Name)
+                                    if (item.Name == achievement.DisplayName)
                                     {
-                                        achievement.Name = item.DisplayName;
-                                        achievement.Name1 = item.Name;
+                                        achievement.DisplayName = item.DisplayName;
+                                        achievement.Id = item.Name;
+                                        achievement.Description = item.Description;
+                                        achievement.Icon = item.Icon;
+                                        achievement.IconGray = item.IconGray;
                                         break;
                                     }
                                 }
                             }
+
+
+
+
                         }
 
                     }
@@ -637,6 +666,21 @@ namespace SAM.Game
 
             }
 
+            foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
+            {
+
+                foreach (var item in this._AchievementDefinitions)
+                {
+                    if (item.Id == achievement.Id)
+                    {
+                        item.Name = achievement.DisplayName;
+                        item.Description = achievement.Description;
+                        SaveLog("成就列表：" +  item.Description + "-" + item.Name);
+                        break;
+                    }
+                }
+
+            }
 
             this._GameStatusLabel.Text = "获取完成";
 
@@ -661,7 +705,7 @@ namespace SAM.Game
                 double sort = -1;
                 foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
                 {
-                    if (def.Name == achievement.Name)
+                    if (def.Name == achievement.DisplayName)
                     {
                         sort = achievement.Percent;
                         break;
@@ -671,7 +715,7 @@ namespace SAM.Game
                 {
                     foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
                     {
-                        if (def.Name == achievement.Name1)
+                        if (def.Name == achievement.Id)
                         {
                             sort = achievement.Percent;
                             break;
@@ -683,7 +727,7 @@ namespace SAM.Game
                 {
                     foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
                     {
-                        if (def.Id == achievement.Name1)
+                        if (def.Id == achievement.Id)
                         {
                             sort = achievement.Percent;
                             break;
@@ -695,7 +739,7 @@ namespace SAM.Game
                 {
                     foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
                     {
-                        if (def.Id == achievement.Name)
+                        if (def.Id == achievement.DisplayName)
                         {
                             sort = achievement.Percent;
                             break;
@@ -708,7 +752,7 @@ namespace SAM.Game
                     foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
                     {
                         var noTrim = def.Name.Replace(" ", ""); ;
-                        if (noTrim == achievement.Name1)
+                        if (noTrim == achievement.Id)
                         {
                             sort = achievement.Percent;
                             break;
@@ -721,7 +765,7 @@ namespace SAM.Game
                     foreach (GetGlobalAchievementPercentagesForAppAchievement achievement in achievements)
                     {
                         var Case = ConvertToCamelCase(def.Name);
-                        if (Case == achievement.Name1)
+                        if (Case == achievement.Id)
                         {
                             sort = achievement.Percent;
                             break;
@@ -734,6 +778,7 @@ namespace SAM.Game
                    
 
                 }
+
                 var info = new Stats.AchievementInfo()
                 {
                     Id = def.Id,
@@ -1086,7 +1131,7 @@ namespace SAM.Game
             for (int i = 0; i < count; i++)
             {
 
-                int randomWaitTimeMs = random.Next(1, 31) * 60000;
+                int randomWaitTimeMs = random.Next(minSeconds, maxSeconds) * 60000;
                 DateTime startTime = DateTime.Now;
                 while ((DateTime.Now - startTime).TotalMilliseconds < randomWaitTimeMs)
                 {
@@ -1450,14 +1495,14 @@ namespace SAM.Game
         }
 
         static string iniFilePath = "config.ini";
-        static string ReadIniValue(string section, string key)
+        static T ReadIniValue<T>(string section, string key)
         {
             if (!File.Exists(iniFilePath))
             {
                 throw new FileNotFoundException("INI 文件不存在。");
             }
 
-            string value = "";
+            T value = default(T); // 默认值
 
             using (StreamReader reader = new StreamReader(iniFilePath))
             {
@@ -1490,7 +1535,16 @@ namespace SAM.Game
 
                             if (string.Equals(currentKey, key, StringComparison.OrdinalIgnoreCase))
                             {
-                                value = currentValue;
+                                // 尝试转换为期望的类型
+                                if (typeof(T) == typeof(int) && int.TryParse(currentValue, out int intValue))
+                                {
+                                    value = (T)(object)intValue;
+                                }
+                                else if (typeof(T) == typeof(string))
+                                {
+                                    value = (T)(object)currentValue;
+                                }
+                                // 如果是其他类型，可以继续扩展转换逻辑
                                 break;
                             }
                         }
@@ -1510,6 +1564,8 @@ namespace SAM.Game
                 writer.WriteLine("UIDs=");
                 writer.WriteLine("Access_Token=");
                 writer.WriteLine("Key=");
+                writer.WriteLine("MinSeconds=1");
+                writer.WriteLine("MaxSeconds=31");
             }
 
         }
@@ -1577,9 +1633,15 @@ public class RootObject
 public class GetGlobalAchievementPercentagesForAppAchievement
 {
     [DataMember(Name = "name")]
-    public string Name { get; set; }
+    public string DisplayName { get; set; }
     [DataMember(Name = "name1")]
-    public string Name1 { get; set; }
+    public string Id { get; set; }
+    [DataMember(Name = "description")]
+    public string Description { get; set; }
+    [DataMember(Name = "icon")]
+    public string Icon { get; set; }
+    [DataMember(Name = "icongray")]
+    public string IconGray { get; set; }
 
     [DataMember(Name = "percent")]
     public double Percent { get; set; }
